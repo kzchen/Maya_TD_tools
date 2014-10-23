@@ -1,3 +1,6 @@
+//a small tool to clone objects along a given path w/ or wo/ orientation
+// kenzie Chen | kzchen@gmail.com
+
 global proc string objsAlongPath(int $isFollow, string $pathName)
 {
     string $selObjs[] = `ls -sl`;
