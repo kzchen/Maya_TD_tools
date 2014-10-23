@@ -1,4 +1,4 @@
-#/// arnold_tech_pass_v036 ///#
+#/// fix face assignment v05 ///#
 
 ### Description ###
 ## This script can fix face assignment( component shader ) to avoid render layer broken.
