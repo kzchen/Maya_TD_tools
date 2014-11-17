@@ -1,0 +1,60 @@
+global proc string objsAlongPath(int $isFollow, string $pathName)
+{
+    string $selObjs[] = `ls -sl`;
+    int $selCountObjs = `size($selObjs)`;
+    float $spacingObj = 0.0;     //the spacing between clone okjects 
+    
+    if( size($selObjs) == 0 )        //Test if nothing selected
+        error "Please Select one object at least!";
+    
+    cycleCheck -e off;      //turn off cycleCheck warning 
+  
+    for ( $i = 0; $i < $selCountObjs; $i++ )
+    {
+        string $outNode = "";
+        float $spacingObj = ( 1.0/($selCountObjs - 1) ) * $i;        //set spacing
+        select -r $selObjs[$i];
+        
+        // apply pathAnimation one object at once
+        pathAnimation -fractionMode true -follow true -followAxis x -upAxis y -worldUpType "vector" -worldUpVector 0 1 0 -inverseUp false -inverseFront false -bank false -startTimeU `currentTime -q` -endTimeU  (`currentTime -q`) -curve $pathName $selObjs[$i];
+        
+        // find the "motionPath" node     
+        $outNode = `findConnectNode("motionPath")`;     
+        
+        if ( $isFollow != 1 )       // if isFollow = off, disconnect the link "rotatx" and "rotatez"
+        {
+            // delete 2 connections to make each clone object always Y-up without changing by curve
+            disconnectAttr ($outNode + ".rx") ($selObjs[$i] + ".rx");       // delete A.ry to B.ry
+            disconnectAttr ($outNode + ".rz") ($selObjs[$i] + ".rz");       // delete A.rz to B.ry
+            setAttr ($selObjs[$i] + ".rotateX") 0;      // reset rotationX and rotationX = 0
+            setAttr ($selObjs[$i] + ".rotateZ") 0;
+        }
+        
+        // delete uValue animation node
+        select -r ($outNode + "_uValue");
+        delete;
+        
+        //assign the each clone object's location along with path
+        setAttr ($outNode + ".uValue") $spacingObj;
+    }
+    return("OK \n");
+}
+
+//this function is to find the "target Node" by name
+global proc string findConnectNode(string $destName)        
+{
+    // collect all nodes connecting to the selected node!
+    string $connectNodes[] = `listConnections -source true -destination true`;
+    
+    string $targetNode = "";
+    for($node in $connectNodes)
+    {
+        // Test if each collected node is equal to "target node"
+        if ( `objectType $node` == $destName )      
+        {
+            $targetNode = $node;
+            break;
+        }
+    }
+    return($targetNode);
+}
